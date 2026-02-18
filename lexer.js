@@ -223,6 +223,8 @@ function obtenerSiguienteToken() {
         else if (caracter === '!' && siguienteCaracter === '=') { operadorFinal = "!="; posicionActual++; }
         else if (caracter === '<' && siguienteCaracter === '=') { operadorFinal = "<="; posicionActual++; }
         else if (caracter === '>' && siguienteCaracter === '=') { operadorFinal = ">="; posicionActual++; }
+        // NUEVO: Soporte para el operador de flujo de cout
+        else if (caracter === '<' && siguienteCaracter === '<') { operadorFinal = "<<"; posicionActual++; } 
         else if (caracter === '+' && siguienteCaracter === '+') { operadorFinal = "++"; posicionActual++; }
         else if (caracter === '-' && siguienteCaracter === '-') { operadorFinal = "--"; posicionActual++; }
         else if (caracter === '&' && siguienteCaracter === '&') { operadorFinal = "&&"; posicionActual++; }
