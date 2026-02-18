@@ -5,62 +5,54 @@ let tokenActual = null;
 let errorSintactico = false;
 
 export async function iniciarInterpretacion(tokensLexer) {
-	const areaSalida = document.getElementById('panelLL1'); 
-	
-	let htmlSalida = `<div class="status-banner valido-ll1">EJECUCIÓN ARITMÉTICA (LL1)</div>`;
-	
-	tokensLocales = tokensLexer.filter(t => t.tipo !== "SKIP");
-	i = 0;
-	tablaSimbolos = {}; 
-	errorSintactico = false;
+    const areaSalida = document.getElementById('panelLL1'); 
+    let htmlSalida = `<div class="status-banner valido-ll1">EJECUCIÓN ARITMÉTICA (LL1)</div>`;
+    
+    // Filtramos tokens nulos o de salto
+    tokensLocales = tokensLexer.filter(t => t && t.tipo !== "SKIP");
+    i = 0;
+    tablaSimbolos = {}; 
+    errorSintactico = false;
 
-	try {
-		while (i < tokensLocales.length && errorSintactico === false) {
-			scanner(); 
-			
-			if (tokenActual.tipo === "ID") {
-				let nombreVariable = tokenActual.lexema;
-				scanner();
-				
-				if (tokenActual.lexema === "=") {
-					scanner();
-					let resultadoCalculado = E(); 
-					
-					if (tokenActual.lexema === ";") {
-						tablaSimbolos[nombreVariable] = resultadoCalculado;
-						htmlSalida = htmlSalida + `<div class="linea-asignacion">Asignación: ${nombreVariable} = ${resultadoCalculado}</div>`;
-					} else {
-						throw new Error("Se esperaba ';' al final de la asignación de " + nombreVariable);
-					}
-				} else {
-					// Si hay un ID pero no sigue un '=', simplemente seguimos buscando
-					continue;
-				}
-			} 
-			
-			else if (tokenActual.lexema === "cout") {
-				scanner();
-				
-				if (tokenActual.lexema === "<<") {
-					scanner();
-					let valorParaImprimir = E();
-					
-					if (tokenActual.lexema === ";") {
-						htmlSalida = htmlSalida + `<div class="linea-cout">SALIDA COUT: <b>${valorParaImprimir}</b></div>`;
-					} else {
-						throw new Error("Se esperaba ';' después del cout");
-					}
-				} else {
-					throw new Error("Se esperaba '<<' después de cout");
-				}
-			} 
-		}
-	} catch (err) {
-		errorSintactico = true;
-		htmlSalida = `<div class="error-ll1">ERROR: ${err.message}</div>` + htmlSalida;
-	}
-
-	areaSalida.innerHTML = htmlSalida;
+    try {
+        while (i < tokensLocales.length && !errorSintactico) {
+            scanner(); 
+            
+            // Caso 1: Asignación (ID = ...)
+            if (tokenActual.tipo === "ID" && tokenActual.lexema !== "cout") {
+                let nombreVariable = tokenActual.lexema;
+                let sigToken = tokensLocales[i]; // Peek al siguiente
+                
+                if (sigToken && sigToken.lexema === "=") {
+                    scanner(); // Consumir el ID
+                    scanner(); // Consumir el "="
+                    let resultadoCalculado = E(); 
+                    
+                    if (tokenActual.lexema === ";") {
+                        tablaSimbolos[nombreVariable] = resultadoCalculado;
+                        htmlSalida += `<div class="linea-asignacion">Asignación: ${nombreVariable} = ${resultadoCalculado}</div>`;
+                    }
+                }
+            } 
+            // Caso 2: Salida (cout << ...)
+            else if (tokenActual.lexema === "cout") {
+                scanner();
+                if (tokenActual.lexema === "<<") {
+                    scanner();
+                    let valorParaImprimir = E();
+                    if (tokenActual.lexema === ";") {
+                        htmlSalida += `<div class="linea-cout">SALIDA COUT: <b>${valorParaImprimir}</b></div>`;
+                    } else {
+                        throw new Error("Se esperaba ';' después del cout");
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        errorSintactico = true;
+        htmlSalida = `<div class="error-ll1">ERROR: ${err.message}</div>` + htmlSalida;
+    }
+    areaSalida.innerHTML = htmlSalida;
 }
 
 function scanner() {
